@@ -1,0 +1,35 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    obj = bld.create_ns3_module('reliability', ['core', 'network', 'energy'])
+    obj.source = [
+        'model/reliability-model.cc',
+        'model/temperature-model.cc',
+        'model/power-model.cc',
+        'model/reliability-base.cc',
+        'model/temperature-base.cc',
+        'model/power-base.cc',
+        'helper/reliability-helper.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('reliability')
+    module_test.source = [
+
+        ]
+     
+    headers = bld(features='ns3header')
+    headers.module = 'reliability'
+    headers.source = [
+        'helper/reliability-helper.h',
+        'model/reliability-model.h',
+        'model/temperature-model.h',
+        'model/power-model.h',
+        'model/reliability-base.h',
+        'model/temperature-base.h',
+        'model/power-base.h',
+        ]
+
+    if (bld.env['ENABLE_EXAMPLES']):
+        bld.recurse('examples')
+
+    bld.ns3_python_bindings()
