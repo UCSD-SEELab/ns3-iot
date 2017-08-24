@@ -33,27 +33,46 @@ using namespace ns3;
 void
 ReliabilityTracer (Ptr<OutputStreamWrapper> stream, double oldValue, double newValue)
 {
-  std::cout << "Reliability" << newValue << std::endl;
+  std::cout << "Reliability = " << newValue << std::endl;
   *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldValue << "\t" << newValue;
 }
 
 void
 TemperatureTracer (Ptr<OutputStreamWrapper> stream, double oldValue, double newValue)
 {
-  std::cout << "Temperature" << newValue << std::endl;
+  std::cout << "Temperature = " << newValue << std::endl;
   *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldValue << "\t" << newValue;
 }
 
 void
 PowerTracer (Ptr<OutputStreamWrapper> stream, double oldValue, double newValue)
 {
-  std::cout << "Power" << newValue << std::endl;
+  std::cout << "Power = " << newValue << std::endl;
   *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldValue << "\t" << newValue;
 }
+
+void
+PrintInfo (NodeContainer nodes)
+{
+  for(uint32_t i=0;i<nodes.GetN();i++)
+  {
+    std::cout<<"At time "<< Simulator::Now().GetSeconds()<<", NodeId = "<<nodes.Get(i)->GetId();
+    std::cout << " Power = " << nodes.Get(i)->GetObject<PowerModel>()->GetPower();
+    std::cout << " Temperature = " << nodes.Get(i)->GetObject<TemperatureModel>()->GetTemperature();
+    std::cout << " Reliability = " << nodes.Get(i)->GetObject<ReliabilityModel>()->GetReliability()<<std::endl;
+  }
+  if (!Simulator::IsFinished ())
+  {
+    Simulator::Schedule (Seconds (1),&PrintInfo,nodes);
+  }
+}
+
 
 int
 main (int argc, char **argv)
 {
+
+  //LogLevel level = (LogLevel) (LOG_LEVEL_ALL | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_PREFIX_FUNC);
 
   int i=0,num_nodes=3;
 
@@ -61,7 +80,7 @@ main (int argc, char **argv)
   cmd.Parse (argc, argv);
   
   ReliabilityHelper reliabilityHelper;
-  reliabilityHelper.EnableLogComponents ();
+  //reliabilityHelper.EnableLogComponents (level);
   //LogComponentEnable ("PowerModel", LOG_LEVEL_ALL);
   //LogComponentEnable ("TemperatureModel", LOG_LEVEL_ALL);
 
@@ -93,9 +112,11 @@ main (int argc, char **argv)
   Ptr<OutputStreamWrapper> stream = asciiTraceHelper.CreateFileStream ("sixth.cwnd");
 
   Time now = Simulator::Now ();
-  nodes.Get (0)->GetObject<ReliabilityModel> ()->TraceConnectWithoutContext ("Reliability", MakeBoundCallback (&ReliabilityTracer, stream));
-  nodes.Get (0)->GetObject<TemperatureModel> ()->TraceConnectWithoutContext ("Temperature", MakeBoundCallback (&TemperatureTracer, stream));
-  nodes.Get (0)->GetObject<PowerModel> ()->TraceConnectWithoutContext ("Power", MakeBoundCallback (&PowerTracer, stream));
+  //nodes.Get (0)->GetObject<ReliabilityModel> ()->TraceConnectWithoutContext ("Reliability", MakeBoundCallback (&ReliabilityTracer, stream));
+  //nodes.Get (0)->GetObject<TemperatureModel> ()->TraceConnectWithoutContext ("Temperature", MakeBoundCallback (&TemperatureTracer, stream));
+  //nodes.Get (0)->GetObject<PowerModel> ()->TraceConnectWithoutContext ("Power", MakeBoundCallback (&PowerTracer, stream));
+
+  PrintInfo (nodes);
 
   for(i=0;i<num_nodes;i++)
   Simulator::Schedule (now,&PowerModel::UpdatePower,nodes.Get (i)->GetObject<PowerModel> ());
