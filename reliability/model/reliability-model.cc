@@ -64,7 +64,7 @@ ReliabilityModel::GetTypeId (void)
 ReliabilityModel::ReliabilityModel ()
 {
   NS_LOG_FUNCTION (this);
-  m_reliability = 100.0;
+  m_reliability = 1.0;
   m_A = 1.0;
   m_B = 0.5;
   m_area = 1.0;
@@ -138,23 +138,22 @@ ReliabilityModel::UpdateReliability (double powerCon, double temperature)
 {
   NS_LOG_FUNCTION (this << m_reliability << Simulator::Now ().GetSeconds ());
 
+
   Time duration = Simulator::Now () - m_lastUpdateTime;
   NS_ASSERT (duration.GetNanoSeconds () >= 0); // check if duration is valid
 
-  int offset = 0;
+  float offset = 0;
   float multtemp = 0.001;
   float multvolt = 0.1;
   float volt = 1;
 
-  int time_max_years = 5;
+  float time_max_years = 5;
   float shape_mod_parameter = offset + multtemp*temperature + multvolt*volt;
   float time_conversion = time_max_years/1000;
   float time_current_scaled = Simulator::Now ().GetSeconds () * time_conversion;
   float time_next_scaled = (Simulator::Now ().GetSeconds () + 1) * time_conversion;
-  //m_reliability = std::exp (-m_area * pow(Simulator::Now ().GetSeconds ()/m_A, m_B) ); //m_A*m_reliability + m_B*powerCon;
   float damage_current = std::exp(-m_area * time_current_scaled * shape_mod_parameter) - std::exp(-m_area * time_next_scaled * shape_mod_parameter);
   m_reliability = m_reliability - damage_current;
-//  double supplyVoltage = m_source->GetSupplyVoltage ();
 
   // update last update time stamp
   m_lastUpdateTime = Simulator::Now ();

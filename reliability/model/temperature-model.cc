@@ -120,12 +120,16 @@ TemperatureModel::GetB (void) const
 }
 
 void
-TemperatureModel::UpdateTemperature (double powerCon)
+TemperatureModel::UpdateTemperature (double powerCon, double duration)
 {
   NS_LOG_FUNCTION (this << m_temperature);
   //NS_LOG_FUNCTION ("m_A:" << m_A << " m_B:" << m_B << " powerCon:" << powerCon);
 
-  m_temperature = m_A*m_temperature + m_B*powerCon;
+
+  while (duration > 0){
+    m_temperature = m_A*m_temperature + m_B*powerCon;
+    duration = duration - 1;
+  }
 //  double supplyVoltage = m_source->GetSupplyVoltage ();
 
   m_reliabilityModel->UpdateReliability (powerCon, m_temperature);

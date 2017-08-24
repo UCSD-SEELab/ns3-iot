@@ -179,7 +179,7 @@ PowerModel::UpdatePower ()
   m_lastUpdateTime = Simulator::Now ();
 
   // notify energy source
-  m_temperatureModel->UpdateTemperature (m_power);
+  m_temperatureModel->UpdateTemperature (m_power, duration.GetSeconds());
 
   m_powerUpdateEvent = Simulator::Schedule (m_powerUpdateInterval,&PowerModel::UpdatePower,this);
 

@@ -65,7 +65,7 @@ public:
    *
    * Implements DeviceEnergyModel::ChangeState.
    */
-  virtual void UpdateTemperature (double powerCon);
+  virtual void UpdateTemperature (double powerCon, double duration);
 
   /**
    * \returns Current state.
