@@ -31,24 +31,24 @@
 using namespace ns3;
 
 void
-ReliabilityTracer (Ptr<OutputStreamWrapper> stream, double oldValue, double newValue)
+ReliabilityTracer (Ptr<OutputStreamWrapper> stream, uint32_t id, double oldValue, double newValue)
 {
-  std::cout << "Reliability = " << newValue << std::endl;
-  *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldValue << "\t" << newValue;
+  std::cout << "NodeId = " << id << " Reliability = " << newValue << std::endl;
+  *stream->GetStream () << Simulator::Now ().GetSeconds () << " NID=" << id << " " << oldValue << " " << newValue << std::endl;
 }
 
 void
-TemperatureTracer (Ptr<OutputStreamWrapper> stream, double oldValue, double newValue)
+TemperatureTracer (Ptr<OutputStreamWrapper> stream, uint32_t id, double oldValue, double newValue)
 {
-  std::cout << "Temperature = " << newValue << std::endl;
-  *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldValue << "\t" << newValue;
+  std::cout << "NodeId = " << id << " Temperature = " << newValue << std::endl;
+  *stream->GetStream () << Simulator::Now ().GetSeconds () << " NID=" << id << " " << oldValue << " " << newValue << std::endl;
 }
 
 void
-PowerTracer (Ptr<OutputStreamWrapper> stream, double oldValue, double newValue)
+PowerTracer (Ptr<OutputStreamWrapper> stream, uint32_t id, double oldValue, double newValue)
 {
-  std::cout << "Power = " << newValue << std::endl;
-  *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldValue << "\t" << newValue;
+  std::cout << "NodeId = " << id << " Power = " << newValue << std::endl;
+  *stream->GetStream () << Simulator::Now ().GetSeconds () << " NID=" << id << " " << oldValue << " " << newValue << std::endl;
 }
 
 void
@@ -60,6 +60,9 @@ PrintInfo (NodeContainer nodes)
     std::cout << " Power = " << nodes.Get(i)->GetObject<PowerModel>()->GetPower();
     std::cout << " Temperature = " << nodes.Get(i)->GetObject<TemperatureModel>()->GetTemperature();
     std::cout << " Reliability = " << nodes.Get(i)->GetObject<ReliabilityModel>()->GetReliability()<<std::endl;
+
+    if (nodes.Get(i)->GetObject<ReliabilityModel>()->GetReliability() < 0.1)
+        Simulator::Stop ();
   }
   if (!Simulator::IsFinished ())
   {
@@ -108,13 +111,18 @@ main (int argc, char **argv)
 
   //node->AggregateObject (esCont);
 
-  AsciiTraceHelper asciiTraceHelper;
-  Ptr<OutputStreamWrapper> stream = asciiTraceHelper.CreateFileStream ("sixth.cwnd");
+  AsciiTraceHelper relTraceHelper, tempTraceHelper, powTraceHelper;
+  Ptr<OutputStreamWrapper> reliability_stream = relTraceHelper.CreateFileStream ("reliability.log");
+  Ptr<OutputStreamWrapper> temperature_stream = tempTraceHelper.CreateFileStream ("temperature.log");
+  Ptr<OutputStreamWrapper> power_stream = powTraceHelper.CreateFileStream ("power.log");
 
   Time now = Simulator::Now ();
-  //nodes.Get (0)->GetObject<ReliabilityModel> ()->TraceConnectWithoutContext ("Reliability", MakeBoundCallback (&ReliabilityTracer, stream));
-  //nodes.Get (0)->GetObject<TemperatureModel> ()->TraceConnectWithoutContext ("Temperature", MakeBoundCallback (&TemperatureTracer, stream));
-  //nodes.Get (0)->GetObject<PowerModel> ()->TraceConnectWithoutContext ("Power", MakeBoundCallback (&PowerTracer, stream));
+  for(i=0;i<num_nodes;i++)
+  {
+    nodes.Get (i)->GetObject<ReliabilityModel> ()->TraceConnectWithoutContext ("Reliability", MakeBoundCallback (&ReliabilityTracer, reliability_stream, nodes.Get(i)->GetId()));
+    nodes.Get (i)->GetObject<TemperatureModel> ()->TraceConnectWithoutContext ("Temperature", MakeBoundCallback (&TemperatureTracer, temperature_stream, nodes.Get(i)->GetId()));
+    nodes.Get (i)->GetObject<PowerModel> ()->TraceConnectWithoutContext ("Power", MakeBoundCallback (&PowerTracer, power_stream, nodes.Get(i)->GetId()));
+  }
 
   PrintInfo (nodes);
 
@@ -122,7 +130,7 @@ main (int argc, char **argv)
   Simulator::Schedule (now,&PowerModel::UpdatePower,nodes.Get (i)->GetObject<PowerModel> ());
   //Simulator::Schedule (now,&PowerModel::UpdatePower,nodes.Get (1)->GetObject<PowerModel> ());
   //Simulator::Schedule (now,&TemperatureModel::UpdateTemperature,node->GetObject<TemperatureModel> (),100);
-  now += Seconds (64);
+  now += Seconds (3600);
 
   Simulator::Stop (now);
   Simulator::Run ();
